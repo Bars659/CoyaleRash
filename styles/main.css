@@ -1,0 +1,394 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#game-container {
+    background: #2c3e50;
+    border-radius: 15px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    position: relative;
+    max-width: 900px;
+    width: 100%;
+}
+
+#game-header {
+    background: linear-gradient(90deg, #34495e, #2c3e50);
+    padding: 15px 20px;
+    color: white;
+    border-bottom: 3px solid #3498db;
+}
+
+.player-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tower-health {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.tower-icon {
+    font-size: 24px;
+}
+
+.health-bar {
+    width: 200px;
+    height: 10px;
+    background: #e74c3c;
+    border-radius: 5px;
+    overflow: hidden;
+    position: relative;
+}
+
+.health-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #27ae60, #2ecc71);
+    transition: width 0.3s ease;
+}
+
+.health-text {
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.elixir-display {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #8e44ad;
+    padding: 8px 15px;
+    border-radius: 20px;
+}
+
+.elixir-icon {
+    font-size: 20px;
+}
+
+.elixir-count {
+    font-weight: bold;
+    font-size: 18px;
+}
+
+#game-canvas {
+    display: block;
+    background: linear-gradient(180deg, #87CEEB 0%, #98FB98 50%, #90EE90 100%);
+    border: none;
+    width: 100%;
+    height: 500px;
+}
+
+#game-ui {
+    background: linear-gradient(90deg, #2c3e50, #34495e);
+    padding: 15px;
+    border-top: 3px solid #3498db;
+}
+
+.card-deck {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.card {
+    background: linear-gradient(145deg, #3498db, #2980b9);
+    border-radius: 10px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    width: 80px;
+    text-align: center;
+    color: white;
+    border: 2px solid transparent;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    border-color: #f39c12;
+}
+
+.card.selected {
+    border-color: #e74c3c;
+    background: linear-gradient(145deg, #e74c3c, #c0392b);
+    transform: translateY(-5px);
+}
+
+.card.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.card.disabled:hover {
+    transform: none;
+}
+
+.card-cost {
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    background: #8e44ad;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    border: 2px solid white;
+}
+
+.card-image {
+    font-size: 24px;
+    margin: 5px 0;
+}
+
+.card-name {
+    font-size: 10px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+#game-menu {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    z-index: 1000;
+}
+
+#game-menu h1 {
+    font-size: 48px;
+    margin-bottom: 30px;
+    background: linear-gradient(45deg, #3498db, #e74c3c);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+#game-menu button {
+    background: linear-gradient(145deg, #3498db, #2980b9);
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    margin: 10px;
+    border-radius: 25px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+#game-menu button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(145deg, #2980b9, #3498db);
+}
+
+.modal {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.modal-content {
+    background: #2c3e50;
+    padding: 30px;
+    border-radius: 15px;
+    color: white;
+    text-align: center;
+    max-width: 400px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+}
+
+.modal-content h2 {
+    margin-bottom: 20px;
+    color: #3498db;
+}
+
+.modal-content p {
+    margin: 10px 0;
+    line-height: 1.6;
+}
+
+.modal-content button {
+    background: linear-gradient(145deg, #e74c3c, #c0392b);
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    margin-top: 20px;
+    border-radius: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.modal-content button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    #game-container {
+        margin: 10px;
+        border-radius: 10px;
+    }
+    
+    #game-canvas {
+        height: 400px;
+    }
+    
+    .card {
+        width: 70px;
+        padding: 8px;
+    }
+    
+    .card-image {
+        font-size: 20px;
+    }
+    
+    .health-bar {
+        width: 150px;
+    }
+}
+
+/* Dragging styles */
+.card.dragging {
+    opacity: 0.7;
+    transform: rotate(5deg) scale(1.1);
+    z-index: 1000;
+    pointer-events: none;
+}
+
+.placement-zone {
+    border: 2px dashed #f39c12;
+    background: rgba(243, 156, 18, 0.2);
+}
+
+/* Animation classes */
+@keyframes unitSpawn {
+    from {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.unit-spawn {
+    animation: unitSpawn 0.3s ease-out;
+}
+
+/* Tooltip styles */
+.card-tooltip {
+    position: absolute;
+    background: #2c3e50;
+    color: white;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    display: none;
+    pointer-events: none;
+    transform: translateX(-50%);
+}
+
+.tooltip-title {
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #3498db;
+}
+
+.tooltip-stats {
+    display: flex;
+    gap: 8px;
+    font-size: 10px;
+}
+
+.tooltip-stats div {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+/* Floating text */
+.floating-text {
+    position: absolute;
+    color: #e74c3c;
+    font-weight: bold;
+    font-size: 14px;
+    pointer-events: none;
+    z-index: 1000;
+    transform: translateX(-50%);
+    transition: all 1s ease-out;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+/* Additional responsive improvements */
+@media (max-width: 480px) {
+    #game-menu h1 {
+        font-size: 36px;
+    }
+    
+    #game-menu button {
+        font-size: 16px;
+        padding: 12px 24px;
+    }
+    
+    .card {
+        width: 60px;
+        padding: 6px;
+    }
+    
+    .card-image {
+        font-size: 18px;
+    }
+    
+    .card-name {
+        font-size: 8px;
+    }
+}
