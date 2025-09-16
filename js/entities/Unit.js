@@ -15,6 +15,7 @@ export class Unit {
         this.speed = stats.speed;
         this.attackRange = stats.range;
         this.radius = stats.radius || 15;
+        this.visionRange = stats.visionRange || 100;
         
         // Movement and combat
         this.velocity = new Vector2D();
@@ -38,28 +39,32 @@ export class Unit {
                 damage: 150, 
                 speed: 30, 
                 range: 40, 
-                radius: 15 
+                radius: 15,
+                visionRange: 100  // Detection range for finding enemies
             },
             archer: { 
                 health: 400, 
                 damage: 100, 
                 speed: 40, 
                 range: 100, 
-                radius: 12 
+                radius: 12,
+                visionRange: 120  // Ranged units have better vision
             },
             giant: { 
                 health: 3000, 
                 damage: 200, 
                 speed: 20, 
                 range: 50, 
-                radius: 25 
+                radius: 25,
+                visionRange: 80   // Giants have shorter vision
             },
             wizard: { 
                 health: 600, 
                 damage: 250, 
                 speed: 35, 
                 range: 120, 
-                radius: 12 
+                radius: 12,
+                visionRange: 140  // Wizards have the best vision
             }
         };
         
@@ -106,24 +111,41 @@ export class Unit {
         let closestTarget = null;
         let closestDistance = Infinity;
         
-        // Look for enemy units first
+        // Look for enemy units within vision range first
         game.units.forEach(unit => {
             if (unit.team !== this.team && unit.alive) {
                 const distance = this.position.distanceTo(unit.position);
-                if (distance < closestDistance) {
+                if (distance <= this.visionRange && distance < closestDistance) {
                     closestDistance = distance;
                     closestTarget = unit;
                 }
             }
         });
         
-        // If no units, target enemy tower
+        // If no units in vision range, check if enemy tower is within vision range
         if (!closestTarget) {
             const enemyTower = game.towers.find(tower => 
                 tower.team !== this.team && tower.alive
             );
             if (enemyTower) {
-                closestTarget = enemyTower;
+                const distanceToTower = this.position.distanceTo(enemyTower.position);
+                if (distanceToTower <= this.visionRange) {
+                    closestTarget = enemyTower;
+                }
+            }
+        }
+        
+        // If still no target in vision range, move towards enemy base as fallback
+        if (!closestTarget) {
+            const enemyTower = game.towers.find(tower => 
+                tower.team !== this.team && tower.alive
+            );
+            // Only target tower if relatively close (within double vision range)
+            if (enemyTower) {
+                const distanceToTower = this.position.distanceTo(enemyTower.position);
+                if (distanceToTower <= this.visionRange * 2) {
+                    closestTarget = enemyTower;
+                }
             }
         }
         
@@ -131,7 +153,11 @@ export class Unit {
     }
 
     move(deltaTime, game) {
-        if (!this.target) return;
+        if (!this.target) {
+            // No target in range, stop moving
+            this.velocity.set(0, 0);
+            return;
+        }
         
         const distanceToTarget = this.position.distanceTo(this.target.position);
         
@@ -174,10 +200,30 @@ export class Unit {
         }
     }
 
-    attack(target, game) {
+    tryAttack(target) {
+        const currentTime = Date.now();
+        if (currentTime - this.lastAttack < this.attackCooldown) return false;
+        
+        this.attack(target);
+        this.lastAttack = currentTime;
+        return true;
+    }
+
+    tryAttackWithGame(target, game) {
+        const currentTime = Date.now();
+        if (currentTime - this.lastAttack < this.attackCooldown) return false;
+        
+        this.attack(target, game);
+        this.lastAttack = currentTime;
+        return true;
+    }
+
+    attack(target, game = null) {
         if (this.type === 'archer' || this.type === 'wizard') {
             // Ranged attack - create projectile
-            this.createProjectile(target, game);
+            if (game) {
+                this.createProjectile(target, game);
+            }
         } else {
             // Melee attack - direct damage
             target.takeDamage(this.damage);
@@ -262,6 +308,19 @@ export class Unit {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(this.emoji, 0, 0);
+        
+        // Vision range indicator (when unit has a target)
+        if (this.target) {
+            ctx.strokeStyle = this.team === 'player' ? '#2980b9' : '#c0392b';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([3, 3]);
+            ctx.globalAlpha = 0.3;
+            ctx.beginPath();
+            ctx.arc(0, 0, this.visionRange, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.globalAlpha = 1;
+        }
         
         // Health bar
         this.drawHealthBar(ctx);
