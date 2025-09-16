@@ -143,7 +143,7 @@ export class Game {
 
     updateElixir(deltaTime) {
         this.lastElixirRegen += deltaTime;
-        if (this.lastElixirRegen >= 1.0) { // Regenerate every second
+        if (this.lastElixirRegen >= 3.0) { // Regenerate every 3 seconds
             this.playerElixir = Math.min(this.playerElixir + this.elixirRegenRate, this.maxElixir);
             this.lastElixirRegen = 0;
             this.updateElixirDisplay();
@@ -169,7 +169,7 @@ export class Game {
     }
 
     checkCollisions() {
-        // Unit vs Unit combat
+        // Unit vs Unit combat - check for proper combat engagement
         for (let i = 0; i < this.units.length; i++) {
             const unit1 = this.units[i];
             if (!unit1.alive) continue;
@@ -179,22 +179,37 @@ export class Game {
                 if (!unit2.alive || unit1.team === unit2.team) continue;
                 
                 const distance = unit1.position.distanceTo(unit2.position);
-                if (distance < unit1.attackRange) {
-                    unit1.attack(unit2);
+                
+                // Check if units can attack each other
+                if (distance < unit1.attackRange && unit1.target === unit2) {
+                    unit1.tryAttackWithGame(unit2, this);
                 }
-                if (distance < unit2.attackRange) {
-                    unit2.attack(unit1);
+                if (distance < unit2.attackRange && unit2.target === unit1) {
+                    unit2.tryAttackWithGame(unit1, this);
                 }
             }
         }
         
         // Projectile vs Unit collisions
         this.projectiles.forEach(projectile => {
+            if (!projectile.alive) return;
+            
             this.units.forEach(unit => {
                 if (unit.team !== projectile.team && unit.alive) {
                     const distance = projectile.position.distanceTo(unit.position);
-                    if (distance < unit.radius) {
+                    if (distance < unit.radius + 5) { // Small buffer for projectile hit detection
                         unit.takeDamage(projectile.damage);
+                        projectile.alive = false;
+                    }
+                }
+            });
+            
+            // Projectile vs Tower collisions
+            this.towers.forEach(tower => {
+                if (tower.team !== projectile.team && tower.alive) {
+                    const distance = projectile.position.distanceTo(tower.position);
+                    if (distance < tower.radius) {
+                        tower.takeDamage(projectile.damage);
                         projectile.alive = false;
                     }
                 }
