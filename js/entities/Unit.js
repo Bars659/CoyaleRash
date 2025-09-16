@@ -40,7 +40,7 @@ export class Unit {
                 speed: 30, 
                 range: 40, 
                 radius: 15,
-                visionRange: 100  // Detection range for finding enemies
+                visionRange: 150  // Increased detection range for finding enemies
             },
             archer: { 
                 health: 400, 
@@ -48,7 +48,7 @@ export class Unit {
                 speed: 40, 
                 range: 100, 
                 radius: 12,
-                visionRange: 120  // Ranged units have better vision
+                visionRange: 180  // Increased vision for ranged units
             },
             giant: { 
                 health: 3000, 
@@ -56,7 +56,7 @@ export class Unit {
                 speed: 20, 
                 range: 50, 
                 radius: 25,
-                visionRange: 80   // Giants have shorter vision
+                visionRange: 120  // Increased vision for giants
             },
             wizard: { 
                 health: 600, 
@@ -64,7 +64,7 @@ export class Unit {
                 speed: 35, 
                 range: 120, 
                 radius: 12,
-                visionRange: 140  // Wizards have the best vision
+                visionRange: 210  // Increased vision for wizards
             }
         };
         
@@ -135,17 +135,13 @@ export class Unit {
             }
         }
         
-        // If still no target in vision range, move towards enemy base as fallback
+        // If still no target found, always target the enemy tower (units should always move toward enemy)
         if (!closestTarget) {
             const enemyTower = game.towers.find(tower => 
                 tower.team !== this.team && tower.alive
             );
-            // Only target tower if relatively close (within double vision range)
             if (enemyTower) {
-                const distanceToTower = this.position.distanceTo(enemyTower.position);
-                if (distanceToTower <= this.visionRange * 2) {
-                    closestTarget = enemyTower;
-                }
+                closestTarget = enemyTower;
             }
         }
         
@@ -154,9 +150,17 @@ export class Unit {
 
     move(deltaTime, game) {
         if (!this.target) {
-            // No target in range, stop moving
-            this.velocity.set(0, 0);
-            return;
+            // This should rarely happen now since we always set enemy tower as target
+            // But as a safety measure, try to find enemy tower
+            const enemyTower = game.towers.find(tower => 
+                tower.team !== this.team && tower.alive
+            );
+            if (enemyTower) {
+                this.target = enemyTower;
+            } else {
+                this.velocity.set(0, 0);
+                return;
+            }
         }
         
         const distanceToTarget = this.position.distanceTo(this.target.position);
