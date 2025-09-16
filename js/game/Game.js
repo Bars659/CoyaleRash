@@ -406,11 +406,14 @@ export class Game {
 
     // AI for enemy
     startEnemyAI() {
-        setInterval(() => {
-            if (this.running) {
-                this.enemyAI();
-            }
-        }, 3000); // AI acts every 3 seconds
+        // Add a 5 second delay before AI starts spawning units
+        setTimeout(() => {
+            setInterval(() => {
+                if (this.running) {
+                    this.enemyAI();
+                }
+            }, 5000); // AI acts every 5 seconds (less frequent)
+        }, 5000); // Wait 5 seconds before starting
     }
 
     enemyAI() {
